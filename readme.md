@@ -52,7 +52,7 @@ PUT /:product_sku
 }
 ```
 
-3. Use inventory for a given product, at a given product size:
+3. Adjust inventory for a given product, at a given product size:
 
 ```
 PUT /:product_sku
@@ -60,7 +60,7 @@ PUT /:product_sku
 # Request payload
 {
     "size": "size_1",
-    "amount": 2
+    "amount": -2
 }
 
 # Response payload

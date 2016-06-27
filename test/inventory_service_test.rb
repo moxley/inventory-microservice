@@ -52,4 +52,30 @@ class TestInventoryService < Minitest::Test
     doc = service.get(SKU)
     assert doc['inventory'] == {"size_1" => 101}, "inventory didn't match. Was: #{doc['inventory'].inspect}"
   end
+
+  def test_adjust_without_sku_match
+    begin
+      service.adjust(SKU, "size_1", 1)
+      fail "Should have raised error"
+    rescue InventoryService::NotFound
+      # Expected
+    end
+  end
+
+  def test_adjust_without_size_match
+    service.set(SKU, {})
+    begin
+      service.adjust(SKU, "unknown_size", 1)
+      fail "Should have raised error"
+    rescue InventoryService::NotFound
+      # Expected
+    end
+  end
+
+  def test_adjust_with_match
+    service.set(SKU, {"size_1" => 100})
+    service.adjust(SKU, "size_1", 1)
+    doc = service.get(SKU)
+    assert doc["inventory"] == {"size_1" => 99}
+  end
 end
