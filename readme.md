@@ -154,3 +154,24 @@ curl -X PUT -d 'size=size_1&amount=-2' localhost:2000/abc123
     }
 }
 ```
+
+## Circuit Breaker
+
+The integration of the microservice API with it's data store is fortified with
+a Circuit Breaker pattern. If the data store fails 3 times consecutively,
+it will go into a "red light", or "broken circuit" state. Successive calls to
+the API will not be routed to the data store until a "cool off" period has
+elapsed. The cool off period is configured for 10 seconds.
+
+The circuit breaker can be tested by shutting down Couchdb and running the
+following command more than three times:
+
+```
+curl -X PUT -d 'inventory[size_1]=10' localhost:2000/abc123
+```
+
+The output will show a `Errno::ECONNREFUSED` error for the first three
+iterations, then it will show a `Stoplight::Error::RedLight` after that.
+
+After waiting 10 seconds and turning Couchdb back on, the API will work
+without failure.
