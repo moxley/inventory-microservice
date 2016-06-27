@@ -95,3 +95,62 @@ Individual tests can be run with:
 ```
 rake test TEST=test/test_foobar.rb TESTOPTS="--name=test_foobar1"
 ```
+
+## Using the API
+
+Start the API:
+
+```
+ruby app.rb
+```
+
+Note: The following examples are idealized. They are the desired responses,
+not the actual responses.
+
+Create inventory:
+
+```
+curl -X PUT -d 'inventory[size_1]=10&inventory[size_2]=20' localhost:2000/abc123
+
+{
+    "data": {
+        "id": "abc123",
+        "inventory": {
+            "size_1": 10,
+            "size_2": 20
+        }
+    }
+}
+```
+
+Read inventory
+
+```
+curl localhost:2000/abc123
+
+{
+    "data": {
+        "id": "abc123",
+        "inventory": {
+            "size_1": 10,
+            "size_2": 20
+        }
+    }
+}
+```
+
+Adjust inventory
+
+```
+curl -X PUT -d 'size=size_1&amount=-2' localhost:2000/abc123
+
+{
+    "data": {
+        "id": "abc123",
+        "inventory": {
+            "size_1": 8,
+            "size_2": 20
+        }
+    }
+}
+```

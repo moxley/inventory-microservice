@@ -23,9 +23,10 @@ class InventoryService
   def set(sku, inventory)
     inventory = inventory.
       keys.
-      reduce(inventory) do |key, inventory|
-        inventory.merge(key => inventory[key].to_i)
+      reduce({}) do |new_inventory, key|
+        new_inventory.merge(key => inventory[key].to_i)
       end
+
     doc = get(sku)
     if doc
       doc["inventory"] = inventory

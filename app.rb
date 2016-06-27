@@ -10,7 +10,7 @@ def json_api_response(status, data)
   [
     status,
     {'Content-Type' => 'text/json'},
-    JSON.generate({'data' => data})
+    JSON.generate(data)
   ]
 end
 
@@ -25,8 +25,7 @@ put '/:sku' do |sku|
   service = InventoryService.new
   res = if params['inventory']
     # curl -X PUT -d 'inventory[size_1]=10&inventory[size_2]=20' localhost:2000/abc123
-    res = service.set(sku, params['inventory'])
-    res["data"]
+    service.set(sku, params['inventory'])
   elsif params['amount']
     # curl -X PUT -d 'size=size_1&amount=-2' localhost:2000/abc123
     amount = params['amount']
