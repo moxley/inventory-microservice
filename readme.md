@@ -3,6 +3,8 @@
 This microservice consists of a REST API, backed by a Couchdb data store
 (external dependency).
 
+## API
+
 The API provides the following three actions:
 
 1. Get inventory amounts for product, grouped by product size:
@@ -72,4 +74,24 @@ PUT /:product_sku
         }
     }
 }
+```
+
+## Testing
+
+The test suite for the microservice can be run with the following command:
+
+```
+rake
+```
+
+Individual test files can be run with:
+
+```
+rake test TEST=test/test_foobar.rb"
+```
+
+Individual tests can be run with:
+
+```
+rake test TEST=test/test_foobar.rb TESTOPTS="--name=test_foobar1"
 ```
