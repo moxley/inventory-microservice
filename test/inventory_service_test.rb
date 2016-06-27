@@ -3,23 +3,28 @@ require "inventory_service"
 
 class TestInventoryService < Minitest::Test
   SKU = 'abc123'
+  SIMPLE_DOC = {
+    "_id" => SKU,
+    "inventory" => {
+      "size_1" => 10
+    }
+  }
+
+  attr_reader :couch
 
   def service
     @service ||= InventoryService.new(couch: couch)
   end
 
-  def couch
+  def setup
     @couch ||= begin
       server = CouchRest.new
-      db = server.database!('inventory_service_test')
-      doc = begin
-        db.get(SKU)
-      rescue RestClient::ResourceNotFound
-        nil
-      end
-      db.delete_doc(doc) if doc
-      db
+      server.database!('inventory_service_test')
     end
+  end
+
+  def teardown
+    couch.delete!
   end
 
   def test_get_with_no_match
@@ -28,15 +33,23 @@ class TestInventoryService < Minitest::Test
   end
 
   def test_get_with_match
-    doc = {
-      "_id" => SKU,
-      "inventory" => {
-        "size_1" => 10
-      }
-    }
-    couch.save_doc(doc)
+    couch.save_doc(SIMPLE_DOC)
 
     doc = service.get(SKU)
-    assert doc['inventory'] == {"size_1" => 10}
+    assert doc['inventory'] == SIMPLE_DOC['inventory']
+  end
+
+  def test_set_with_match
+    couch.save_doc(SIMPLE_DOC)
+
+    res = service.set(SKU, {"size_1" => 101})
+    doc = service.get(SKU)
+    assert doc['inventory'] == {"size_1" => 101}, "inventory didn't match. Was: #{doc['inventory'].inspect}"
+  end
+
+  def test_set_without_match
+    res = service.set(SKU, {"size_1" => 101})
+    doc = service.get(SKU)
+    assert doc['inventory'] == {"size_1" => 101}, "inventory didn't match. Was: #{doc['inventory'].inspect}"
   end
 end
