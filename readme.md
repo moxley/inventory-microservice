@@ -155,6 +155,21 @@ curl -X PUT -d 'size=size_1&amount=-2' localhost:2000/abc123
 }
 ```
 
+## Design Considerations
+
+Microservices tend to be implemented with very small code bases, so
+Object-Oriented Design tends to be less important than it would be for a
+monolith. The business logic of the service is compartmentalized with a Service
+Object pattern, which I will refer to as a "service class". This makes testing
+a large number of edge cases easier, because otherwise, the HTTP interface
+makes debugging more difficult.
+
+The API for this microservice roughly follows a REST API pattern, where the
+REST resource is the ProductInventory. There is a "fetch resource by ID" action
+and two "update resource by ID" actions. The two update actions are handled by
+the same endpoint handler, but are handled by two different methods on the
+service class.
+
 ## Circuit Breaker
 
 The integration of the microservice API with it's data store is fortified with
