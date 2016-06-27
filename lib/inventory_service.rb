@@ -21,6 +21,11 @@ class InventoryService
   end
 
   def set(sku, inventory)
+    inventory = inventory.
+      keys.
+      reduce(inventory) do |key, inventory|
+        inventory.merge(key => inventory[key].to_i)
+      end
     doc = get(sku)
     if doc
       doc["inventory"] = inventory
@@ -40,7 +45,7 @@ class InventoryService
     raise NotFound, "Not found for sku: #{sku}" unless doc
     old_amount = doc["inventory"][size]
     raise NotFound, "Not found for size: #{sku}" unless old_amount
-    new_amount = old_amount - amount
+    new_amount = old_amount.to_i + amount.to_i
     doc["inventory"][size] = new_amount
     set(sku, doc["inventory"])
   end
