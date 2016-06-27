@@ -1,4 +1,5 @@
-require 'couchrest'
+require "couchrest"
+require "stoplight"
 
 # TODO Check sku to valid format
 class InventoryService
@@ -11,7 +12,9 @@ class InventoryService
 
   def get(sku)
     begin
-      couch.get(sku)
+      with_circuit_breaker do
+        couch.get(sku)
+      end
     rescue RestClient::ResourceNotFound
       nil
     end
@@ -27,7 +30,9 @@ class InventoryService
         "inventory" => inventory
       }
     end
-    couch.save_doc(doc)
+    with_circuit_breaker do
+      couch.save_doc(doc)
+    end
   end
 
   def adjust(sku, size, amount)
@@ -47,5 +52,12 @@ class InventoryService
       server = CouchRest.new
       server.database!('inventory_service')
     end
+  end
+
+  def with_circuit_breaker(&block)
+    Stoplight('couchdb') do
+      yield
+    end.with_cool_off_time(10).
+      run
   end
 end

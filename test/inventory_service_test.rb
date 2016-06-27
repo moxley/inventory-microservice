@@ -2,6 +2,9 @@ require "minitest/autorun"
 require "inventory_service"
 
 class TestInventoryService < Minitest::Test
+  class MyError < RuntimeError
+  end
+
   SKU = 'abc123'
   SIMPLE_DOC = {
     "_id" => SKU,
@@ -17,6 +20,11 @@ class TestInventoryService < Minitest::Test
   end
 
   def setup
+    # Prevent test output pollution
+    Stoplight::Light.default_error_notifier = -> _ {}
+    Stoplight::Light.default_notifiers = []
+    Stoplight::Light.default_data_store = Stoplight::DataStore::Memory.new
+
     @couch ||= begin
       server = CouchRest.new
       server.database!('inventory_service_test')
@@ -77,5 +85,49 @@ class TestInventoryService < Minitest::Test
     service.adjust(SKU, "size_1", 1)
     doc = service.get(SKU)
     assert doc["inventory"] == {"size_1" => 99}
+  end
+
+  def test_set_with_failed_couchdb
+    def couch.get(sku)
+      raise Errno::ECONNRESET, "Dummy error"
+    end
+
+    call_service_with_error_green_light
+    call_service_with_error_green_light
+    call_service_with_error_green_light
+
+    # Now at red light
+    call_service_with_error_red_light
+    call_service_with_error_red_light
+    call_service_with_error_red_light
+  end
+
+  def call_service_with_error_green_light
+    begin
+      service.get(SKU)
+      fail "Should have raised Errno::ECONNRESET"
+    rescue Errno::ECONNRESET
+      # Expected
+    end
+  end
+
+  def call_service_with_error_red_light
+    begin
+      service.get(SKU)
+      fail "Should have raised Stoplight::Error::RedLight"
+    rescue Stoplight::Error::RedLight
+      # Expected
+    end
+  end
+
+  def closed_circuit_error(&block)
+    begin
+      with_circuit_breaker do
+        yield
+        fail "Should have raised MyError"
+      end
+    rescue Errno::ECONNRESET
+      # Expected
+    end
   end
 end
