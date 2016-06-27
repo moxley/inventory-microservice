@@ -175,3 +175,14 @@ iterations, then it will show a `Stoplight::Error::RedLight` after that.
 
 After waiting 10 seconds and turning Couchdb back on, the API will work
 without failure.
+
+## Unfinished Implementation
+
+1. The web endpoint was added hastily, without tests. Under normal circumstances,
+  it would be developed in a Test-Driven manner.
+2. The endpoint responses currently do not reflect a clean, consistent API.
+3. Deployment tooling. Tooling needs to be created or integrated to deploy the
+  microservice.
+4. Input validation and input cleanup needs to be added to the service object.
+5. Authentication should be added to the endpoints to ensure the microservice
+  is only accessed by internal services.
